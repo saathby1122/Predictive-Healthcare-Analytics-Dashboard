@@ -1,0 +1,3 @@
+sqlite3 database.db < schema.sql
+python train_model.py
+python app.py
