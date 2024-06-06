@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Healthcare Dashboard</title>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <h1>Healthcare Analytics Dashboard</h1>
+    <div id="patients">
+        <h2>Patients</h2>
+        <table>
+            <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Age</th>
+                <th>Gender</th>
+                <th>Diagnosis</th>
+                <th>Treatment</th>
+            </tr>
+            {% for patient in patients %}
+            <tr>
+                <td>{{ patient.id }}</td>
+                <td>{{ patient.name }}</td>
+                <td>{{ patient.age }}</td>
+                <td>{{ patient.gender }}</td>
+                <td>{{ patient.diagnosis }}</td>
+                <td>{{ patient.treatment }}</td>
+            </tr>
+            {% endfor %}
+        </table>
+    </div>
+    <div id="prediction-form">
+        <h2>Predict Patient Outcome</h2>
+        <form id="predictForm">
+            <input type="text" name="age" placeholder="Age" required>
+            <input type="text" name="gender" placeholder="Gender" required>
+            <input type="text" name="diagnosis" placeholder="Diagnosis" required>
+            <input type="text" name="treatment" placeholder="Treatment" required>
+            <button type="submit">Predict</button>
+        </form>
+        <div id="prediction-result"></div>
+    </div>
+    <div id="visualizations">
+        <h2>Visualizations</h2>
+        <div id="chart"></div>
+    </div>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <script>
+        fetch('/api/patients')
+            .then(response => response.json())
+            .then(data => {
+                const chartData = data.map(patient => ({
+                    x: patient.name,
+                    y: patient.age,
+                    type: 'bar'
+                }));
+                Plotly.newPlot('chart', chartData);
+            });
+
+        document.getElementById('predictForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+            const formData = new FormData(event.target);
+            const data = {};
+            formData.forEach((value, key) => { data[key] = value });
+
+            fetch('/predict', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            })
+            .then(response => response.json())
+            .then(result => {
+                document.getElementById('prediction-result').innerText = 'Prediction: ' + result.prediction;
+            });
+        });
+    </script>
+</body>
+</html>
